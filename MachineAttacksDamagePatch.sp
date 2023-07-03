@@ -13,41 +13,44 @@ static int RED_COUNT = 0;
 public Plugin myinfo = {
     name        = "Machine Attacks Damage Path",
     author      = "Katsute",
-    description = "Remove damage adjustements for Machine Attacks version 3",
+    description = "Remove damage adjustments for Machine Attacks version 3",
     version     = "1.0",
     url         = "https://github.com/KatsuteTF/Machine-Attacks-Damage-Patch"
 }
 
 public void OnPluginStart(){
-    for(int i = 1; i <= MAXPLAYERS; i++)
+    for(int i = 1; i <= MaxClients; i++)
         HookDamage(i);
+    RecountPlayers();
 }
 
-public void OnClientPutInServer(int client){
+public void OnClientConnected(int client){
     HookDamage(client);
     RecountPlayers();
+    RED_COUNT++;
 }
 
 public void OnClientDisconnect_Post(int client){
     RecountPlayers();
+    RED_COUNT--;
 }
 
 public void HookDamage(const int client){
-    if(IsClientInGame(i))
-        SDKHook(i, SDKHook_OnTakeDamageAlive, OnTakeDamage);
+    if(IsClientInGame(client))
+        SDKHook(client, SDKHook_OnTakeDamageAlive, OnTakeDamage);
 }
 
 public void RecountPlayers(){
     int players = 0;
-    for(int i = 1; i <= MAXPLAYERS; i++)
+    for(int i = 1; i <= MaxClients; i++)
         if(IsClientInGame(i) && GetClientTeam(i) == TF_RED)
             players++;
     RED_COUNT = players;
 }
 
 public Action OnTakeDamage(int victim, int &attacker, int &inflictor, float &damage, int &damagetype, int &weapon, float damageForce[3], float damagePosition[3]){
-    if(1 <= victim <= MAXPLAYERS && IsClientInGame(victim) && 1 <= attacker <= MAXPLAYERS && IsClientInGame(attacker)){
-        bool team = GetClientTeam(attacker);
+    if(1 <= victim <= MaxClients && IsClientInGame(victim) && 1 <= attacker <= MaxClients && IsClientInGame(attacker)){
+        int team = GetClientTeam(victim);
 
         switch(RED_COUNT){
             case 1, 2: {
@@ -56,7 +59,9 @@ public Action OnTakeDamage(int victim, int &attacker, int &inflictor, float &dam
                 else if(team == TF_BLU)
                     damage *= 0.5;
             }
-            case 3, 4, 5: { }
+            case 3, 4, 5: {
+                return Plugin_Continue;
+            }
             case 6, 7, 8: {
                 if(team == TF_RED)
                     damage *= 0.5;
@@ -70,6 +75,7 @@ public Action OnTakeDamage(int victim, int &attacker, int &inflictor, float &dam
                     damage *= 4.0;
             }
         }
+        return Plugin_Changed;
     }
     return Plugin_Continue;
 }
