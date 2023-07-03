@@ -11,7 +11,7 @@
 static int RED_COUNT = 0;
 
 public Plugin myinfo = {
-    name        = "Machine Attacks Damage Path",
+    name        = "Machine Attacks Damage Patch",
     author      = "Katsute",
     description = "Remove damage adjustments for Machine Attacks version 3",
     version     = "1.0",
@@ -20,24 +20,28 @@ public Plugin myinfo = {
 
 public void OnPluginStart(){
     for(int i = 1; i <= MaxClients; i++)
-        HookDamage(i);
+        if(IsClientInGame(i))
+            HookDamage(i);
     RecountPlayers();
+    HookEvent("player_team", OnTeamChange, EventHookMode_Post);
 }
 
-public void OnClientConnected(int client){
-    HookDamage(client);
+public void OnTeamChange(const Event event, const char[] name, const bool dontBroadcast){
     RecountPlayers();
-    RED_COUNT++;
+    if(GetEventInt(event, "team") == TF_RED)
+        RED_COUNT++;
+}
+
+public void OnClientPostAdminCheck(int client){
+    HookDamage(client);
 }
 
 public void OnClientDisconnect_Post(int client){
     RecountPlayers();
-    RED_COUNT--;
 }
 
 public void HookDamage(const int client){
-    if(IsClientInGame(client))
-        SDKHook(client, SDKHook_OnTakeDamageAlive, OnTakeDamage);
+    SDKHook(client, SDKHook_OnTakeDamageAlive, OnTakeDamage);
 }
 
 public void RecountPlayers(){
