@@ -12,3 +12,5 @@ jobs:
     uses: KatsuteTF/Workflows/.github/workflows/release.yml@main
     with:
       file: MachineAttacksDamagePatch.sp
+    secrets:
+      token: ${{ secrets.GITHUB_TOKEN }}
